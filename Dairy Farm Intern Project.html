@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPS Dairy Farm Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&display=swap');
+        
+        body { 
+            font-family: 'Fredoka', sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 25%, #cbd5e1 50%, #94a3b8 75%, #64748b 100%);
+            background-attachment: fixed;
+        }
+        
+        .milk-container {
+            background: linear-gradient(145deg, #ffffff 0%, #f1f5f9 50%, #e2e8f0 100%);
+            box-shadow: 
+                inset 0 1px 0 rgba(255,255,255,0.8),
+                0 10px 30px rgba(0,0,0,0.1),
+                0 1px 3px rgba(0,0,0,0.1);
+            border: 2px solid rgba(255,255,255,0.9);
+        }
+        
+        .cream-input {
+            background: linear-gradient(145deg, #fefefe 0%, #f8fafc 100%);
+            border: 2px solid #e2e8f0;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
+            transition: all 0.3s ease;
+        }
+        
+        .cream-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 
+                inset 0 2px 4px rgba(0,0,0,0.06),
+                0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .farm-button {
+            background: linear-gradient(145deg, #10b981 0%, #059669 100%);
+            box-shadow: 
+                0 4px 15px rgba(16, 185, 129, 0.3),
+                inset 0 1px 0 rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .farm-button:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 
+                0 12px 35px rgba(16, 185, 129, 0.5),
+                inset 0 1px 0 rgba(255,255,255,0.3);
+        }
+        
+        .action-button:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .milk-drop {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 100%);
+            border-radius: 50%;
+            animation: float 4s ease-in-out infinite;
+            box-shadow: 0 2px 8px rgba(255,255,255,0.3);
+        }
+        
+        @keyframes float {
+            0%, 100% { 
+                transform: translateY(0px) rotate(0deg) scale(1); 
+                opacity: 0.7; 
+            }
+            25% { 
+                transform: translateY(-15px) rotate(90deg) scale(1.2); 
+                opacity: 1; 
+            }
+            50% { 
+                transform: translateY(-25px) rotate(180deg) scale(0.8); 
+                opacity: 0.9; 
+            }
+            75% { 
+                transform: translateY(-15px) rotate(270deg) scale(1.1); 
+                opacity: 1; 
+            }
+        }
+        
+        .milk-stats {
+            background: linear-gradient(145deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid #f59e0b;
+            box-shadow: 
+                0 4px 15px rgba(245, 158, 11, 0.2),
+                inset 0 1px 0 rgba(255,255,255,0.5);
+        }
+        
+        .customer-card {
+            background: linear-gradient(145deg, #f0f9ff 0%, #e0f2fe 100%);
+            border: 2px solid #0ea5e9;
+            box-shadow: 
+                0 4px 15px rgba(14, 165, 233, 0.1),
+                inset 0 1px 0 rgba(255,255,255,0.7);
+        }
+        
+        .nav-tab {
+            background: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%);
+            color: #64748b;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-tab.active {
+            background: linear-gradient(145deg, #10b981 0%, #059669 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+        
+        .nav-tab:hover:not(.active) {
+            background: linear-gradient(145deg, #e2e8f0 0%, #cbd5e1 100%);
+            transform: translateY(-2px);
+        }
+        
+        .page-content {
+            transition: all 0.5s ease;
+        }
+        
+        .page-content.hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen relative overflow-x-hidden">
+    <!-- Floating milk drops -->
+    <div class="milk-drop" style="top: 10%; left: 5%; animation-delay: 0s;"></div>
+    <div class="milk-drop" style="top: 20%; left: 85%; animation-delay: 1s;"></div>
+    <div class="milk-drop" style="top: 60%; left: 10%; animation-delay: 2s;"></div>
+    <div class="milk-drop" style="top: 80%; left: 90%; animation-delay: 0.5s;"></div>
+    
+    <!-- Floating farm emojis -->
+    <div class="fixed text-4xl opacity-20 animate-bounce" style="top: 15%; left: 20%; animation-delay: 1s; animation-duration: 3s;">🌾</div>
+    <div class="fixed text-3xl opacity-15 animate-bounce" style="top: 70%; left: 80%; animation-delay: 2s; animation-duration: 4s;">🚚</div>
+    <div class="fixed text-5xl opacity-10 animate-bounce" style="top: 40%; left: 75%; animation-delay: 0.5s; animation-duration: 5s;">🐄</div>
+    
+    <!-- Login Screen -->
+    <div id="loginScreen" class="container mx-auto px-4 py-8 relative z-10">
+        <div class="max-w-md mx-auto">
+            <div class="milk-container rounded-3xl p-8 relative">
+                <div class="absolute top-4 right-4 text-4xl opacity-20">🔐</div>
+                
+                <!-- Login Header -->
+                <div class="text-center mb-8">
+                    <div class="flex justify-center items-center gap-4 mb-4">
+                        <span class="text-5xl">🐄</span>
+                        <h1 class="text-3xl font-bold text-gray-800">SPS Farm Login</h1>
+                        <span class="text-5xl">🔒</span>
+                    </div>
+                    <p class="text-lg text-gray-600 font-medium">Secure access to SPS dairy farm system</p>
+                </div>
+
+                <!-- Login Form -->
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-3 text-lg flex items-center gap-2">
+                            <span class="text-2xl">👤</span>
+                            Farm Manager ID
+                        </label>
+                        <input type="text" id="loginUsername" placeholder="Enter your farm manager ID" class="cream-input w-full px-6 py-4 rounded-2xl text-gray-800 text-lg font-medium focus:outline-none placeholder-gray-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-3 text-lg flex items-center gap-2">
+                            <span class="text-2xl">🔑</span>
+                            Security Password
+                        </label>
+                        <input type="password" id="loginPassword" placeholder="Enter your secure password" class="cream-input w-full px-6 py-4 rounded-2xl text-gray-800 text-lg font-medium focus:outline-none placeholder-gray-500">
+                    </div>
+
+                    <!-- Demo Credentials Info -->
+                    <div class="bg-blue-50 border-2 border-blue-200 rounded-2xl p-4">
+                        <h4 class="font-bold text-blue-800 mb-2 flex items-center gap-2">
+                            <span class="text-lg">ℹ️</span>
+                            Demo Credentials
+                        </h4>
+                        <div class="text-sm text-blue-700 space-y-1">
+                            <p><strong>Username:</strong> Dharun</p>
+                            <p><strong>Password:</strong> 123</p>
+                            <p class="text-xs mt-2 opacity-75">Use these credentials to access the system</p>
+                        </div>
+                    </div>
+
+                    <button onclick="attemptLogin()" class="w-full farm-button text-white font-bold py-5 px-8 rounded-2xl transition-all text-xl flex items-center justify-center gap-4 group">
+                        <span class="text-3xl group-hover:animate-bounce">🚪</span>
+                        Enter Farm System
+                    </button>
+
+                    <!-- Security Features -->
+                    <div class="text-center text-sm text-gray-600 space-y-2">
+                        <div class="flex items-center justify-center gap-2">
+                            <span class="text-green-600">🔒</span>
+                            <span>Secure encrypted access</span>
+                        </div>
+                        <div class="flex items-center justify-center gap-2">
+                            <span class="text-blue-600">🛡️</span>
+                            <span>Farm data protection enabled</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application (Hidden until login) -->
+    <div id="mainApplication" class="container mx-auto px-4 py-8 relative z-10" style="display: none;">
+        <!-- Header -->
+        <div class="text-center mb-8 border-b-4 border-green-500 pb-6">
+            <div class="flex justify-center items-center gap-4 mb-4">
+                <span class="text-6xl">🐄</span>
+                <h1 class="text-5xl font-bold text-gray-800">SPS Dairy Farm</h1>
+                <span class="text-6xl">🥛</span>
+            </div>
+            <p class="text-xl text-gray-600 font-medium">SPS fresh milk delivery tracking system</p>
+            <div class="flex justify-center gap-4 mt-4">
+                <span class="text-2xl">🌾</span>
+                <span class="text-2xl">🚚</span>
+                <span class="text-2xl">📊</span>
+            </div>
+            
+            <!-- Logout Button -->
+            <div class="mt-6">
+                <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white font-bold px-6 py-3 rounded-xl transition-all flex items-center gap-2 mx-auto">
+                    <span class="text-lg">🚪</span>
+                    Logout
+                </button>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="flex justify-center mb-8">
+            <div class="milk-container rounded-2xl p-2 flex gap-2">
+                <button onclick="showPage('entry')" id="entryTab" class="nav-tab active px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2">
+                    <span class="text-2xl">📝</span>
+                    Daily Entry
+                </button>
+                <button onclick="showPage('records')" id="recordsTab" class="nav-tab px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2">
+                    <span class="text-2xl">📋</span>
+                    Farm Records
+                </button>
+                <button onclick="showPage('analytics')" id="analyticsTab" class="nav-tab px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2">
+                    <span class="text-2xl">📊</span>
+                    Analytics
+                </button>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div class="max-w-4xl mx-auto">
+            <!-- Daily Entry Page -->
+            <div id="entryPage" class="page-content">
+                <div class="milk-container rounded-3xl p-8 relative">
+                    <div class="absolute top-4 right-4 text-4xl opacity-20">🧈</div>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-8 flex items-center gap-3">
+                        <span class="text-4xl">📝</span>
+                        Daily Farm Entry
+                    </h2>
+                    
+                    <!-- Date and Production -->
+                    <div class="mb-8">
+                        <label class="block text-gray-700 font-semibold mb-3 text-lg flex items-center gap-2">
+                            <span class="text-2xl">📅</span>
+                            Farm Date
+                        </label>
+                        <input type="date" id="entryDate" class="cream-input w-full px-6 py-4 rounded-2xl text-gray-800 text-lg font-medium focus:outline-none">
+                    </div>
+
+                    <div class="mb-8">
+                        <label class="block text-gray-700 font-semibold mb-3 text-lg flex items-center gap-2">
+                            <span class="text-2xl">🥛</span>
+                            Total Milk Produced Today (Liters)
+                        </label>
+                        <input type="number" id="totalProduced" step="0.1" placeholder="Enter fresh milk production" class="cream-input w-full px-6 py-4 rounded-2xl text-gray-800 text-lg font-medium focus:outline-none placeholder-gray-500">
+                    </div>
+
+                    <!-- Customer Entry -->
+                    <div class="mb-8">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+                            <span class="text-3xl">👥</span>
+                            Customer Deliveries
+                        </h3>
+                        <div class="space-y-6" id="customerEntries">
+                            <div class="customer-entry customer-card p-6 rounded-2xl relative">
+                                <div class="absolute top-3 right-3 text-2xl opacity-30">🏠</div>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <input type="text" placeholder="Customer Name" class="customer-name cream-input px-4 py-3 rounded-xl text-gray-800 font-medium focus:outline-none placeholder-gray-500">
+                                    <input type="number" step="0.1" placeholder="Delivered (L)" class="milk-received cream-input px-4 py-3 rounded-xl text-gray-800 font-medium focus:outline-none placeholder-gray-500">
+                                    <input type="number" step="0.1" placeholder="Tomorrow's Order (L)" class="milk-requested cream-input px-4 py-3 rounded-xl text-gray-800 font-medium focus:outline-none placeholder-gray-500">
+                                </div>
+                                <button onclick="removeCustomer(this)" class="mt-4 text-red-600 hover:text-red-800 font-medium flex items-center gap-2 transition-colors">
+                                    <span class="text-lg">🗑️</span>
+                                    Remove Customer
+                                </button>
+                            </div>
+                        </div>
+                        <button onclick="addCustomer()" class="mt-6 farm-button text-white font-bold px-8 py-4 rounded-2xl transition-all flex items-center gap-3 text-lg group">
+                            <span class="text-2xl group-hover:animate-spin">➕</span>
+                            Add New Customer
+                        </button>
+                    </div>
+
+                    <!-- Summary -->
+                    <div class="mb-8 milk-stats p-6 rounded-2xl relative">
+                        <div class="absolute top-3 right-3 text-3xl opacity-40">📊</div>
+                        <h3 class="text-2xl font-bold text-amber-800 mb-6 flex items-center gap-3">
+                            <span class="text-3xl">🧮</span>
+                            Today's Farm Summary
+                        </h3>
+                        <div class="grid grid-cols-3 gap-6 text-center">
+                            <div class="bg-white/50 p-4 rounded-xl">
+                                <div class="text-3xl font-bold text-green-600 mb-2" id="totalDelivered">0.0</div>
+                                <div class="text-sm font-semibold text-green-800 flex items-center justify-center gap-1">
+                                    <span class="text-lg">🚚</span>
+                                    Delivered (L)
+                                </div>
+                            </div>
+                            <div class="bg-white/50 p-4 rounded-xl">
+                                <div class="text-3xl font-bold text-blue-600 mb-2" id="totalRequested">0.0</div>
+                                <div class="text-sm font-semibold text-blue-800 flex items-center justify-center gap-1">
+                                    <span class="text-lg">📋</span>
+                                    Tomorrow's Orders (L)
+                                </div>
+                            </div>
+                            <div class="bg-white/50 p-4 rounded-xl">
+                                <div class="text-3xl font-bold text-purple-600 mb-2" id="remainingMilk">0.0</div>
+                                <div class="text-sm font-semibold text-purple-800 flex items-center justify-center gap-1">
+                                    <span class="text-lg">🥛</span>
+                                    Remaining (L)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Save Button -->
+                    <button onclick="saveEntry()" class="w-full farm-button text-white font-bold py-5 px-8 rounded-2xl transition-all text-xl flex items-center justify-center gap-4 group">
+                        <span class="text-3xl group-hover:animate-bounce">💾</span>
+                        Save Farm Entry
+                    </button>
+                </div>
+            </div>
+
+            <!-- Farm Records Page -->
+            <div id="recordsPage" class="page-content hidden">
+                <div class="milk-container rounded-3xl p-8 relative">
+                    <div class="absolute top-4 right-4 text-4xl opacity-20">📚</div>
+                    <div class="mb-8">
+                        <h2 class="text-3xl font-bold text-gray-800 flex items-center gap-3 mb-6">
+                            <span class="text-4xl animate-bounce">📋</span>
+                            Farm Records
+                        </h2>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <button onclick="exportData()" class="action-button bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold px-6 py-4 rounded-xl transition-all flex items-center justify-center gap-3 text-lg group">
+                                <span class="text-2xl group-hover:animate-pulse">📤</span>
+                                Export Farm Data
+                            </button>
+                            <button onclick="autoExportData()" class="action-button bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold px-6 py-4 rounded-xl transition-all flex items-center justify-center gap-3 text-lg group">
+                                <span class="text-2xl group-hover:animate-bounce">⚡</span>
+                                Auto Download
+                            </button>
+                            <button onclick="clearAllData()" class="action-button bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold px-6 py-4 rounded-xl transition-all flex items-center justify-center gap-3 text-lg group">
+                                <span class="text-2xl group-hover:animate-spin">🗑️</span>
+                                Clear All Records
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto bg-white/70 rounded-2xl p-4">
+                        <table class="w-full text-gray-800">
+                            <thead>
+                                <tr class="border-b-2 border-gray-300">
+                                    <th class="text-left py-4 px-3 font-bold text-sm">📅 Date</th>
+                                    <th class="text-left py-4 px-3 font-bold text-sm">👤 Customer</th>
+                                    <th class="text-left py-4 px-3 font-bold text-sm">🚚 Delivered</th>
+                                    <th class="text-left py-4 px-3 font-bold text-sm">📋 Tomorrow</th>
+                                    <th class="text-left py-4 px-3 font-bold text-sm">🥛 Total Prod.</th>
+                                    <th class="text-left py-4 px-3 font-bold text-sm">📊 Remaining</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recordsTable">
+                                <tr>
+                                    <td colspan="6" class="text-center py-12 text-gray-500 text-lg">
+                                        <div class="flex flex-col items-center gap-4">
+                                            <span class="text-6xl opacity-50">🐄</span>
+                                            <span class="font-medium">No farm records yet. Start by adding your first daily entry!</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Page -->
+            <div id="analyticsPage" class="page-content hidden">
+                <div class="milk-container rounded-3xl p-8 relative">
+                    <div class="absolute top-4 right-4 text-4xl opacity-20">📊</div>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-8 flex items-center gap-3">
+                        <span class="text-4xl">📊</span>
+                        Farm Analytics
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                        <!-- Weekly Summary -->
+                        <div class="milk-stats p-6 rounded-2xl">
+                            <h3 class="text-xl font-bold text-amber-800 mb-4 flex items-center gap-2">
+                                <span class="text-2xl">📈</span>
+                                Weekly Summary
+                            </h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-700">Total Production:</span>
+                                    <span class="font-bold text-green-600" id="weeklyProduction">0.0L</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-700">Total Delivered:</span>
+                                    <span class="font-bold text-blue-600" id="weeklyDelivered">0.0L</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-700">Average Daily:</span>
+                                    <span class="font-bold text-purple-600" id="averageDaily">0.0L</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Top Customers -->
+                        <div class="customer-card p-6 rounded-2xl">
+                            <h3 class="text-xl font-bold text-blue-800 mb-4 flex items-center gap-2">
+                                <span class="text-2xl">👑</span>
+                                Top Customers
+                            </h3>
+                            <div id="topCustomers" class="space-y-2">
+                                <div class="text-gray-500 text-center py-4">No customer data yet</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Monthly Chart Placeholder -->
+                    <div class="bg-white/70 p-6 rounded-2xl">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                            <span class="text-2xl">📊</span>
+                            Monthly Production Trend
+                        </h3>
+                        <div class="h-64 flex items-center justify-center text-gray-500">
+                            <div class="text-center">
+                                <span class="text-6xl opacity-50 block mb-4">📈</span>
+                                <span>Chart visualization coming soon!</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Security credentials
+        const VALID_CREDENTIALS = {
+            username: 'Dharun',
+            password: '123'
+        };
+
+        // Check if user is already logged in
+        window.onload = function() {
+            const isLoggedIn = localStorage.getItem('farmLoginStatus') === 'authenticated';
+            
+            if (isLoggedIn) {
+                showMainApplication();
+            } else {
+                showLoginScreen();
+            }
+        };
+
+        // Login attempt function
+        function attemptLogin() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+
+            // Validate credentials
+            if (username === VALID_CREDENTIALS.username && password === VALID_CREDENTIALS.password) {
+                // Successful login
+                localStorage.setItem('farmLoginStatus', 'authenticated');
+                localStorage.setItem('farmLoginTime', new Date().toISOString());
+                
+                // Show success animation
+                const button = event.target;
+                button.innerHTML = '<span class="text-3xl animate-bounce">✅</span> Access Granted!';
+                button.classList.add('bg-green-600');
+                
+                setTimeout(() => {
+                    showMainApplication();
+                }, 1500);
+                
+            } else {
+                // Failed login
+                const button = event.target;
+                button.innerHTML = '<span class="text-3xl animate-bounce">❌</span> Access Denied!';
+                button.classList.add('bg-red-600');
+                
+                // Clear password field
+                document.getElementById('loginPassword').value = '';
+                
+                // Show error message
+                alert('🚨 Invalid credentials! Please check your Farm Manager ID and password.');
+                
+                setTimeout(() => {
+                    button.innerHTML = '<span class="text-3xl group-hover:animate-bounce">🚪</span> Enter Farm System';
+                    button.classList.remove('bg-red-600');
+                }, 2000);
+            }
+        }
+
+        // Show main application
+        function showMainApplication() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('mainApplication').style.display = 'block';
+            
+            // Initialize application data
+            document.getElementById('entryDate').value = new Date().toISOString().split('T')[0];
+            loadRecords();
+            updateSummary();
+            updateAnalytics();
+        }
+
+        // Show login screen
+        function showLoginScreen() {
+            document.getElementById('loginScreen').style.display = 'block';
+            document.getElementById('mainApplication').style.display = 'none';
+        }
+
+        // Logout function
+        function logout() {
+            if (confirm('🚪 Are you sure you want to logout from the farm system?')) {
+                localStorage.removeItem('farmLoginStatus');
+                localStorage.removeItem('farmLoginTime');
+                showLoginScreen();
+                
+                // Clear login form
+                document.getElementById('loginUsername').value = '';
+                document.getElementById('loginPassword').value = '';
+                
+                alert('👋 You have been successfully logged out. Thank you for using SPS Dairy Farm!');
+            }
+        }
+
+        // Add Enter key support for login
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginInputs = ['loginUsername', 'loginPassword'];
+            loginInputs.forEach(inputId => {
+                const input = document.getElementById(inputId);
+                if (input) {
+                    input.addEventListener('keypress', function(e) {
+                        if (e.key === 'Enter') {
+                            attemptLogin();
+                        }
+                    });
+                }
+            });
+        });
+
+        // Page navigation
+        function showPage(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page-content').forEach(page => {
+                page.classList.add('hidden');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected page
+            document.getElementById(pageId + 'Page').classList.remove('hidden');
+            
+            // Add active class to selected tab
+            document.getElementById(pageId + 'Tab').classList.add('active');
+            
+            // Update analytics when analytics page is shown
+            if (pageId === 'analytics') {
+                updateAnalytics();
+            }
+        }
+
+        function addCustomer() {
+            const container = document.getElementById('customerEntries');
+            const customerEntry = document.createElement('div');
+            customerEntry.className = 'customer-entry customer-card p-6 rounded-2xl relative';
+            customerEntry.innerHTML = `
+                <div class="absolute top-3 right-3 text-2xl opacity-30">🏠</div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <input type="text" placeholder="Customer Name" class="customer-name cream-input px-4 py-3 rounded-xl text-gray-800 font-medium focus:outline-none placeholder-gray-500">
+                    <input type="number" step="0.1" placeholder="Delivered (L)" class="milk-received cream-input px-4 py-3 rounded-xl text-gray-800 font-medium focus:outline-none placeholder-gray-500">
+                    <input type="number" step="0.1" placeholder="Tomorrow's Order (L)" class="milk-requested cream-input px-4 py-3 rounded-xl text-gray-800 font-medium focus:outline-none placeholder-gray-500">
+                </div>
+                <button onclick="removeCustomer(this)" class="mt-4 text-red-600 hover:text-red-800 font-medium flex items-center gap-2 transition-colors">
+                    <span class="text-lg">🗑️</span>
+                    Remove Customer
+                </button>
+            `;
+            container.appendChild(customerEntry);
+            
+            // Add event listeners for real-time calculation
+            const inputs = customerEntry.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('input', updateSummary);
+            });
+        }
+
+        function removeCustomer(button) {
+            button.parentElement.remove();
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const customerEntries = document.querySelectorAll('.customer-entry');
+            let totalDelivered = 0;
+            let totalRequested = 0;
+
+            customerEntries.forEach(entry => {
+                const received = parseFloat(entry.querySelector('.milk-received').value) || 0;
+                const requested = parseFloat(entry.querySelector('.milk-requested').value) || 0;
+                totalDelivered += received;
+                totalRequested += requested;
+            });
+
+            const totalProduced = parseFloat(document.getElementById('totalProduced').value) || 0;
+            const remaining = totalProduced - totalDelivered;
+
+            document.getElementById('totalDelivered').textContent = totalDelivered.toFixed(1);
+            document.getElementById('totalRequested').textContent = totalRequested.toFixed(1);
+            document.getElementById('remainingMilk').textContent = remaining.toFixed(1);
+        }
+
+        function saveEntry() {
+            const date = document.getElementById('entryDate').value;
+            const totalProduced = parseFloat(document.getElementById('totalProduced').value) || 0;
+            
+            if (!date || totalProduced <= 0) {
+                alert('🚨 Please enter a valid date and total milk production amount.');
+                return;
+            }
+
+            const customerEntries = document.querySelectorAll('.customer-entry');
+            const customers = [];
+            let totalDelivered = 0;
+
+            customerEntries.forEach(entry => {
+                const name = entry.querySelector('.customer-name').value.trim();
+                const received = parseFloat(entry.querySelector('.milk-received').value) || 0;
+                const requested = parseFloat(entry.querySelector('.milk-requested').value) || 0;
+
+                if (name && (received > 0 || requested > 0)) {
+                    customers.push({ name, received, requested });
+                    totalDelivered += received;
+                }
+            });
+
+            if (customers.length === 0) {
+                alert('🚨 Please add at least one customer with valid delivery data.');
+                return;
+            }
+
+            const remaining = totalProduced - totalDelivered;
+
+            // Save to localStorage
+            const records = JSON.parse(localStorage.getItem('milkDeliveryRecords') || '[]');
+            
+            customers.forEach(customer => {
+                records.push({
+                    date,
+                    customerName: customer.name,
+                    milkReceived: customer.received,
+                    milkRequested: customer.requested,
+                    totalProduced,
+                    totalDelivered,
+                    remaining
+                });
+            });
+
+            localStorage.setItem('milkDeliveryRecords', JSON.stringify(records));
+            
+            // Clear form
+            document.getElementById('totalProduced').value = '';
+            document.getElementById('customerEntries').innerHTML = `
+                <div class="customer-entry customer-card p-6 rounded-2xl relative">
+                    <div class="absolute top-3 right-3 text-2xl opacity-30">🏠</div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <input type="text" placeholder="Customer Name" class="customer-name cream-input px-4 py-3 rounded-xl text-gray-800 font-medium focus:outline-none placeholder-gray-500">
+                        <input type="number" step="0.1" placeholder="Delivered (L)" class="milk-received cream-input px-4 py-3 rounded-xl text-gray-800 font-medium focus:outline-none placeholder-gray-500">
+                        <input type="number" step="0.1" placeholder="Tomorrow's Order (L)" class="milk-requested cream-input px-4 py-3 rounded-xl text-gray-800 font-medium focus:outline-none placeholder-gray-500">
+                    </div>
+                    <button onclick="removeCustomer(this)" class="mt-4 text-red-600 hover:text-red-800 font-medium flex items-center gap-2 transition-colors">
+                        <span class="text-lg">🗑️</span>
+                        Remove Customer
+                    </button>
+                </div>
+            `;
+
+            // Re-add event listeners
+            const inputs = document.querySelectorAll('.customer-entry input');
+            inputs.forEach(input => {
+                input.addEventListener('input', updateSummary);
+            });
+
+            updateSummary();
+            loadRecords();
+            updateAnalytics();
+            
+            alert('✅ Daily farm entry saved successfully! Fresh data recorded.');
+        }
+
+        function loadRecords() {
+            const records = JSON.parse(localStorage.getItem('milkDeliveryRecords') || '[]');
+            const tableBody = document.getElementById('recordsTable');
+
+            if (records.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center py-12 text-gray-500 text-lg">
+                            <div class="flex flex-col items-center gap-4">
+                                <span class="text-6xl opacity-50">🐄</span>
+                                <span class="font-medium">No farm records yet. Start by adding your first daily entry!</span>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            // Sort records by date (newest first)
+            records.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            tableBody.innerHTML = records.map(record => `
+                <tr class="border-b border-gray-200 hover:bg-blue-50/50 transition-colors">
+                    <td class="py-4 px-3 font-medium">${record.date}</td>
+                    <td class="py-4 px-3 font-medium">${record.customerName}</td>
+                    <td class="py-4 px-3 text-green-600 font-bold">${record.milkReceived.toFixed(1)}L</td>
+                    <td class="py-4 px-3 text-blue-600 font-bold">${record.milkRequested.toFixed(1)}L</td>
+                    <td class="py-4 px-3 text-purple-600 font-bold">${record.totalProduced.toFixed(1)}L</td>
+                    <td class="py-4 px-3 text-orange-600 font-bold">${record.remaining.toFixed(1)}L</td>
+                </tr>
+            `).join('');
+        }
+
+        function exportData() {
+            const records = JSON.parse(localStorage.getItem('milkDeliveryRecords') || '[]');
+            
+            if (records.length === 0) {
+                alert('🚨 No farm data to export!');
+                return;
+            }
+
+            const csvContent = [
+                'Date,Customer Name,Milk Delivered Today (L),Milk Requested Tomorrow (L),Total Milk Produced (L),Total Milk Delivered (L),Remaining Milk (L)',
+                ...records.map(record => 
+                    `${record.date},${record.customerName},${record.milkReceived},${record.milkRequested},${record.totalProduced},${record.totalDelivered},${record.remaining}`
+                )
+            ].join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `sps_dairy_farm_records_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+            
+            alert('📊 Farm records exported successfully!');
+        }
+
+        function autoExportData() {
+            const records = JSON.parse(localStorage.getItem('milkDeliveryRecords') || '[]');
+            
+            if (records.length === 0) {
+                alert('🚨 No farm data to auto-download!');
+                return;
+            }
+
+            // Auto-download without user confirmation
+            const csvContent = [
+                'Date,Customer Name,Milk Delivered Today (L),Milk Requested Tomorrow (L),Total Milk Produced (L),Total Milk Delivered (L),Remaining Milk (L)',
+                ...records.map(record => 
+                    `${record.date},${record.customerName},${record.milkReceived},${record.milkRequested},${record.totalProduced},${record.totalDelivered},${record.remaining}`
+                )
+            ].join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `sps_dairy_farm_auto_export_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            // Show success message with animation
+            const button = event.target.closest('button');
+            const originalText = button.innerHTML;
+            button.innerHTML = '<span class="text-2xl animate-bounce">✅</span> Downloaded!';
+            button.classList.add('bg-green-600');
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.classList.remove('bg-green-600');
+            }, 2000);
+        }
+
+        function updateAnalytics() {
+            const records = JSON.parse(localStorage.getItem('milkDeliveryRecords') || '[]');
+            
+            if (records.length === 0) {
+                document.getElementById('weeklyProduction').textContent = '0.0L';
+                document.getElementById('weeklyDelivered').textContent = '0.0L';
+                document.getElementById('averageDaily').textContent = '0.0L';
+                document.getElementById('topCustomers').innerHTML = '<div class="text-gray-500 text-center py-4">No customer data yet</div>';
+                return;
+            }
+
+            // Calculate weekly stats (last 7 days)
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            
+            const weeklyRecords = records.filter(record => new Date(record.date) >= oneWeekAgo);
+            
+            const weeklyProduction = weeklyRecords.reduce((sum, record) => sum + record.totalProduced, 0);
+            const weeklyDelivered = weeklyRecords.reduce((sum, record) => sum + record.milkReceived, 0);
+            const averageDaily = weeklyRecords.length > 0 ? weeklyProduction / 7 : 0;
+
+            document.getElementById('weeklyProduction').textContent = weeklyProduction.toFixed(1) + 'L';
+            document.getElementById('weeklyDelivered').textContent = weeklyDelivered.toFixed(1) + 'L';
+            document.getElementById('averageDaily').textContent = averageDaily.toFixed(1) + 'L';
+
+            // Calculate top customers
+            const customerTotals = {};
+            records.forEach(record => {
+                if (customerTotals[record.customerName]) {
+                    customerTotals[record.customerName] += record.milkReceived;
+                } else {
+                    customerTotals[record.customerName] = record.milkReceived;
+                }
+            });
+
+            const sortedCustomers = Object.entries(customerTotals)
+                .sort(([,a], [,b]) => b - a)
+                .slice(0, 5);
+
+            if (sortedCustomers.length > 0) {
+                document.getElementById('topCustomers').innerHTML = sortedCustomers.map(([name, total], index) => `
+                    <div class="flex justify-between items-center py-2 px-3 bg-white/50 rounded-lg">
+                        <span class="flex items-center gap-2">
+                            <span class="text-lg">${index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '👤'}</span>
+                            ${name}
+                        </span>
+                        <span class="font-bold text-blue-600">${total.toFixed(1)}L</span>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function clearAllData() {
+            if (confirm('🚨 Are you sure you want to delete all farm records? This action cannot be undone.')) {
+                localStorage.removeItem('milkDeliveryRecords');
+                loadRecords();
+                updateAnalytics();
+                alert('🗑️ All farm records have been cleared.');
+            }
+        }
+
+        // Add event listeners for real-time calculation
+        document.getElementById('totalProduced').addEventListener('input', updateSummary);
+        
+        // Add event listeners to initial customer entry
+        const initialInputs = document.querySelectorAll('.customer-entry input');
+        initialInputs.forEach(input => {
+            input.addEventListener('input', updateSummary);
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'967fef7c17a3937f',t:'MTc1Mzk5NDY4NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
